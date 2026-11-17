@@ -2,11 +2,13 @@ const { Redis } = require('@upstash/redis');
 const sellersConfig = require('../sellers.json');
 
 // Contador GLOBAL compartilhado pelas 2 LPs (site + Instagram)
-// Clique 1 → vendedor 1 | Clique 2 → vendedor 2 | Clique 3 → vendedor 1 …
+// Clique 1 → vinicius | Clique 2 → juliana | Clique 3 → vinicius …
 const REDIS_KEY = 'outlet-paginas:sellers:seq';
 
 const MESSAGES = {
+  // x1-direto
   site: 'Olá, vim pelo site e quero comprar em atacado!',
+  // Linkbio / Instagram
   instagram: 'Olá, vim pelo Instagram e quero comprar no atacado!',
 };
 
@@ -51,7 +53,7 @@ function resolveVariant(req) {
   var raw = '';
   if (req.query && req.query.variant) raw = String(req.query.variant);
   raw = raw.toLowerCase().trim();
-  if (raw === 'instagram' || raw === 'ig') return 'instagram';
+  if (raw === 'instagram' || raw === 'ig' || raw === 'linkbio') return 'instagram';
   return 'site';
 }
 

@@ -1,12 +1,12 @@
 {
   "sellers": [
     {
-      "label": "Vendedor 1",
-      "phone": "5511915887485"
+      "label": "vinicius",
+      "phone": "5511949808009"
     },
     {
-      "label": "Vendedor 2",
-      "phone": "5511949808009"
+      "label": "juliana",
+      "phone": "5511915887485"
     }
   ]
 }
