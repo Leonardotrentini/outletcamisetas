@@ -1,0 +1,13 @@
+{
+  "name": "outlet-paginas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LPs Outlet das Camisetas — rotacionador sequencial Upstash Redis + Meta Pixel/CAPI",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.34.3"
+  }
+}

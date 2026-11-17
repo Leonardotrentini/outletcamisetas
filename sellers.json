@@ -1,0 +1,12 @@
+{
+  "sellers": [
+    {
+      "label": "Vendedor 1",
+      "phone": "5511915887485"
+    },
+    {
+      "label": "Vendedor 2",
+      "phone": "5511949808009"
+    }
+  ]
+}

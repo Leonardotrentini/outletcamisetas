@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/instagram", "destination": "/instagram/index.html" },
+    { "source": "/instagram/", "destination": "/instagram/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}
