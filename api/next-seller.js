@@ -2,7 +2,7 @@ const { Redis } = require('@upstash/redis');
 const sellersConfig = require('../sellers.json');
 
 // Contador GLOBAL compartilhado pelas 2 LPs (site + Instagram)
-// Clique 1 → vinicius | Clique 2 → juliana | Clique 3 → vinicius …
+// Clique 1 → juliana | Clique 2 → vinicius | Clique 3 → juliana …
 const REDIS_KEY = 'outlet-paginas:sellers:seq';
 
 const MESSAGES = {

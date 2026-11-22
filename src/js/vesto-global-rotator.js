@@ -4,7 +4,7 @@
     'https://backend-production-7a466.up.railway.app/api/public/meta/attribution?key=' +
     encodeURIComponent(VESTO_KEY);
   var NEXT_SELLER_URL = '/api/next-seller';
-  var FALLBACK_PHONE = '5511947656139';
+  var FALLBACK_PHONE = '5511915887485';
   var busy = false;
 
   var VARIANT_MESSAGES = {
