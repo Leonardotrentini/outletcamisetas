@@ -71,8 +71,9 @@ function getSellers(variant) {
   return [];
 }
 
-function redisKeyFor(variant) {
-  return 'outlet-paginas:sellers:' + variant + ':seq';
+// Contador GLOBAL compartilhado (padrão Upstash das outras LPs)
+function redisKeyFor(_variant) {
+  return 'outlet-paginas:sellers:seq';
 }
 
 function getRedis() {
