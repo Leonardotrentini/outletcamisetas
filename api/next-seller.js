@@ -1,26 +1,43 @@
 const { Redis } = require('@upstash/redis');
 const sellersConfig = require('../sellers.json');
 
-// Contador GLOBAL compartilhado pelas 2 LPs (site + Instagram)
-// Clique 1 → juliana | Clique 2 → vinicius | Clique 3 → juliana …
-const REDIS_KEY = 'outlet-paginas:sellers:seq';
-
 const MESSAGES = {
-  // x1-direto
   site: 'Olá, vim pelo site e quero comprar em atacado!',
-  // Linkbio / Instagram
   instagram: 'Olá, vim pelo Instagram e quero comprar no atacado!',
 };
 
-function getSellers() {
-  const fromEnv = (process.env.OUTLET_SELLERS || '')
+function resolveVariant(req) {
+  var raw = '';
+  if (req.query && req.query.variant) raw = String(req.query.variant);
+  raw = raw.toLowerCase().trim();
+  if (raw === 'instagram' || raw === 'ig' || raw === 'linkbio') return 'instagram';
+  return 'site';
+}
+
+function normalizeSellers(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .map(function (s, i) {
+      return {
+        label: (s && s.label) || 'Vendedor ' + (i + 1),
+        phone: String((s && s.phone) || '').replace(/\D/g, ''),
+      };
+    })
+    .filter(function (s) {
+      return s.phone && s.phone.length >= 10;
+    });
+}
+
+function getSellers(variant) {
+  // Env opcional: OUTLET_SELLERS_SITE / OUTLET_SELLERS_INSTAGRAM
+  var envKey = variant === 'instagram' ? 'OUTLET_SELLERS_INSTAGRAM' : 'OUTLET_SELLERS_SITE';
+  var fromEnv = (process.env[envKey] || '')
     .split(/[\n,]+/)
     .map(function (line) {
       return String(line || '').trim();
     })
     .filter(Boolean)
     .map(function (entry, i) {
-      // Formatos: "5511..." ou "Nome|5511..."
       var parts = entry.split('|').map(function (p) {
         return p.trim();
       });
@@ -35,26 +52,27 @@ function getSellers() {
 
   if (fromEnv.length) return fromEnv;
 
-  var fromFile =
-    sellersConfig && Array.isArray(sellersConfig.sellers) ? sellersConfig.sellers : [];
-  return fromFile
-    .map(function (s, i) {
-      return {
-        label: (s && s.label) || 'Vendedor ' + (i + 1),
-        phone: String((s && s.phone) || '').replace(/\D/g, ''),
-      };
-    })
-    .filter(function (s) {
-      return s.phone && s.phone.length >= 10;
-    });
+  // Novo formato: { site: [...], instagram: [...] }
+  if (sellersConfig && Array.isArray(sellersConfig[variant])) {
+    return normalizeSellers(sellersConfig[variant]);
+  }
+
+  // Compat: { sellers: [...] }
+  if (sellersConfig && Array.isArray(sellersConfig.sellers)) {
+    var all = normalizeSellers(sellersConfig.sellers);
+    if (variant === 'instagram') {
+      return all.filter(function (s) {
+        return s.label === 'juliana' || s.phone === '5511915887485';
+      });
+    }
+    return all;
+  }
+
+  return [];
 }
 
-function resolveVariant(req) {
-  var raw = '';
-  if (req.query && req.query.variant) raw = String(req.query.variant);
-  raw = raw.toLowerCase().trim();
-  if (raw === 'instagram' || raw === 'ig' || raw === 'linkbio') return 'instagram';
-  return 'site';
+function redisKeyFor(variant) {
+  return 'outlet-paginas:sellers:' + variant + ':seq';
 }
 
 function getRedis() {
@@ -64,9 +82,9 @@ function getRedis() {
   return new Redis({ url: url, token: token });
 }
 
-async function incrementGlobalSeq() {
+async function incrementSeq(variant) {
   var redis = getRedis();
-  var seq = await redis.incr(REDIS_KEY);
+  var seq = await redis.incr(redisKeyFor(variant));
   var n = Number(seq);
   if (!Number.isFinite(n) || n < 1) throw new Error('redis_incr_invalid');
   return n;
@@ -89,17 +107,17 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
   }
 
-  var sellers = getSellers();
   var variant = resolveVariant(req);
+  var sellers = getSellers(variant);
   var message = MESSAGES[variant] || MESSAGES.site;
 
   if (!sellers.length) {
-    return res.status(500).json({ ok: false, error: 'no_sellers_configured' });
+    return res.status(500).json({ ok: false, error: 'no_sellers_configured', variant: variant });
   }
 
   try {
     var total = sellers.length;
-    var seq = await incrementGlobalSeq();
+    var seq = await incrementSeq(variant);
     var index = (seq - 1) % total;
     var seller = sellers[index];
 
@@ -115,7 +133,6 @@ module.exports = async function handler(req, res) {
       source: 'redis',
     });
   } catch (err) {
-    // Fallback: não quebra o CTA se Redis falhar — sempre devolve o 1º número
     var fallback = sellers[0];
     return res.status(200).json({
       ok: true,
