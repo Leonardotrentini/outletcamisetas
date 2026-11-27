@@ -62,7 +62,7 @@ function getSellers(variant) {
     var all = normalizeSellers(sellersConfig.sellers);
     if (variant === 'instagram') {
       return all.filter(function (s) {
-        return s.label === 'juliana' || s.phone === '5511915887485';
+        return s.label === 'juliana' || s.phone === '5511910532881';
       });
     }
     return all;

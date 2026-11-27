@@ -27,10 +27,10 @@ async function run() {
   const igPhones = [...new Set(ig.map((s) => s.phone))];
   const checks = [
     ['site total=1', site.every((s) => s.total === 1)],
-    ['site only juliana', sitePhones.length === 1 && sitePhones[0] === '5511915887485'],
+    ['site only juliana', sitePhones.length === 1 && sitePhones[0] === '5511910532881'],
     ['site never vini', !sitePhones.includes('5511998772154')],
     ['ig total=2', ig.every((s) => s.total === 2)],
-    ['ig has juliana', igPhones.includes('5511915887485')],
+    ['ig has juliana', igPhones.includes('5511910532881')],
     ['ig has vini', igPhones.includes('5511998772154')],
     ['ig alternating', ig.every((s, i) => i === 0 || s.phone !== ig[i - 1].phone)],
     ['site msg', site.every((s) => s.message.includes('site'))],
